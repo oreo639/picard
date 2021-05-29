@@ -454,7 +454,7 @@ DECL_FORMAT(format3) {
 
 	printf("%-7s ", pica_opcode_info[opcode].name);
 	switch (opcode) {
-		case 0x29: /*LOOP ak FOR*/ {
+		case 0x29: /*FOR*/ {
 			const char *label = getLabel(exe, dst);
 			if (label)
 				printf("i%d, <%s>", uniformid, label);
@@ -565,7 +565,7 @@ dmp_pica_info picaParseHeader(const char *bin) {
 		return pinfo;
 
 	if (memcmp("DVLB", bin, 4)!=0) {
-		printf("Something went wrong\n");
+		error("Something went wrong\n");
 	}
 
 	const uint32_t *shbinData = (uint32_t*)bin;
@@ -594,10 +594,9 @@ dmp_pica_info picaParseHeader(const char *bin) {
 		const uint32_t* dvleData=&shbinData[shbinData[2+i]/4];
 
 		if (memcmp("DVLE", dvleData, 4)!=0) {
-			printf("Something went wrong when parsing dvle\n");
+			error("Something went wrong when parsing dvle\n");
 			goto err0;
 		}
-
 
 		exe->version=dvleData[1]&0xFFFF;
 		exe->type=(dvleData[1]>>16)&0xFF;
@@ -659,10 +658,26 @@ int picaDisass(dmp_pica_info *pinfo, int dvleIndex) {
 		dvleIndex = -1;
 	} else {
 		exe = &pinfo->exe[dvleIndex];
+
 		for (size_t j = 0; j < exe->labelTableSize; j++) {
 			//const char *str = &dvleData[/4];
 			verbose("; Label <%s> at offset 0x%x with id %d and unk 0x%x %d\n", &exe->symbTableData[exe->labelTableData[j].symbolOffset], exe->labelTableData[j].progOffset*4, exe->labelTableData[j].id, exe->labelTableData[j].unk, exe->labelTableData[j].pad);
 		}
+
+		if(exe->type==DMP_SHADER_GEOMETRY) {
+			switch (exe->gshMode) {
+				case DMP_GSH_POINT:
+					printf(".gsh point\n");
+					break;
+				case DMP_GSH_VARIABLE_PRIM:
+					printf(".gsh variable %d\n", exe->gshVariableVtxNum);
+					break;
+				case DMP_GSH_FIXED_PRIM:
+					printf(".gsh fixed c%d %d\n", exe->gshFixedVtxStart, exe->gshFixedVtxNum);
+					break;
+			};
+		}
+
 
 		for (size_t j = 0; j < exe->outTableSize; j++) {
 			const char *typename = getStrOutType(exe->outTableData[j].type);
@@ -688,10 +703,9 @@ int picaDisass(dmp_pica_info *pinfo, int dvleIndex) {
 		}
 
 		for (size_t j = 0; j < exe->constTableSize; j++) {
-			printf(".const ");
 			switch (exe->constTableData[j].type) {
 				case 0x0:
-					printf("b%d(%s, %s, %s, %s)",
+					printf(".setb b%d(%s, %s, %s, %s)",
 						exe->constTableData[j].id,
 						exe->constTableData[j].data[0]&0x1?"true":"false",
 						exe->constTableData[j].data[0]>>1&0x1?"true":"false",
@@ -699,7 +713,7 @@ int picaDisass(dmp_pica_info *pinfo, int dvleIndex) {
 						exe->constTableData[j].data[0]>>3&0x1?"true":"false");
 					break;
 				case 0x1:
-					printf("i%d(%d, %d, %d, %d)",
+					printf(".seti i%d(%d, %d, %d, %d)",
 						exe->constTableData[j].id,
 						exe->constTableData[j].data[0]&0xFF,
 						exe->constTableData[j].data[0]>>8&0xFF,
@@ -707,7 +721,7 @@ int picaDisass(dmp_pica_info *pinfo, int dvleIndex) {
 						exe->constTableData[j].data[0]>>24&0xFF);
 					break;
 				case 0x2:
-					printf("c%d(%f, %f, %f, %f)",
+					printf(".setf c%d(%f, %f, %f, %f)",
 						exe->constTableData[j].id,
 						f24tof32(exe->constTableData[j].data[0]),
 						f24tof32(exe->constTableData[j].data[1]),
