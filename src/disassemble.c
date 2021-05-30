@@ -705,12 +705,12 @@ int picaDisass(dmp_pica_info *pinfo, int dvleIndex) {
 		for (size_t j = 0; j < exe->constTableSize; j++) {
 			switch (exe->constTableData[j].type) {
 				case 0x0:
-					printf(".setb b%d %s",
+					printf(".const b%d %s",
 						exe->constTableData[j].id,
 						exe->constTableData[j].data[0]&0x1?"true":"false");
 					break;
 				case 0x1:
-					printf(".seti i%d(%d, %d, %d, %d)",
+					printf(".const i%d(%d, %d, %d, %d)",
 						exe->constTableData[j].id,
 						exe->constTableData[j].data[0]&0xFF,
 						exe->constTableData[j].data[0]>>8&0xFF,
@@ -718,7 +718,7 @@ int picaDisass(dmp_pica_info *pinfo, int dvleIndex) {
 						exe->constTableData[j].data[0]>>24&0xFF);
 					break;
 				case 0x2:
-					printf(".setf c%d(%f, %f, %f, %f)",
+					printf(".const c%d(%f, %f, %f, %f)",
 						exe->constTableData[j].id,
 						f24tof32(exe->constTableData[j].data[0]),
 						f24tof32(exe->constTableData[j].data[1]),
