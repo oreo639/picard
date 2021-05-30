@@ -298,7 +298,7 @@ DECL_FORMAT(format1) {
 		src2,
 		opdesc);
 
-	printf("%-7s %s.%s %s%s.%s %s%s.%s", pica_opcode_info[opcode].name,
+	printf("%-7s %s.%s, %s%s.%s, %s%s.%s", pica_opcode_info[opcode].name,
 		getStrDst(dst).str, getStrOpdesc(opdescData, OPDESC_SWI_DST).str,
 		getStrOpdesc(opdescData, OPDESC_NEG_SRC1).str, getStrSrc(src1).str, getStrOpdesc(opdescData, OPDESC_SWI_SRC1).str,
 		getStrOpdesc(opdescData, OPDESC_NEG_SRC2).str, getStrSrc(src2).str, getStrOpdesc(opdescData, OPDESC_SWI_SRC2).str);
@@ -322,7 +322,7 @@ DECL_FORMAT(format1i) {
 		src2,
 		opdesc);
 
-	printf("%-7s %s.%s %s%s.%s %s%s.%s", pica_opcode_info[opcode].name,
+	printf("%-7s %s.%s, %s%s.%s, %s%s.%s", pica_opcode_info[opcode].name,
 		getStrDst(dst).str, getStrOpdesc(opdescData, OPDESC_SWI_DST).str,
 		getStrOpdesc(opdescData, OPDESC_NEG_SRC1).str, getStrSrc(src1).str, getStrOpdesc(opdescData, OPDESC_SWI_SRC1).str,
 		getStrOpdesc(opdescData, OPDESC_NEG_SRC2).str, getStrSrc(src2).str, getStrOpdesc(opdescData, OPDESC_SWI_SRC2).str);
@@ -346,7 +346,7 @@ DECL_FORMAT(format1u) {
 
 	printf("%-7s ", pica_opcode_info[opcode].name);
 	if (opcode != 0x12/*MOVA*/)
-		printf("%s.%s ", getStrDst(dst).str, getStrOpdesc(opdescData, OPDESC_SWI_DST).str);
+		printf("%s.%s, ", getStrDst(dst).str, getStrOpdesc(opdescData, OPDESC_SWI_DST).str);
 	printf("%s%s.%s", getStrOpdesc(opdescData, OPDESC_NEG_SRC1).str, getStrSrc(src1).str, getStrOpdesc(opdescData, OPDESC_SWI_SRC1).str);
 
 	return 0;
@@ -370,7 +370,7 @@ DECL_FORMAT(format1c) {
 		src2,
 		opdesc);
 
-	printf("%-7s %s%s.%s %s %s %s%s.%s", pica_opcode_info[opcode].name,
+	printf("%-7s %s%s.%s, %s, %s, %s%s.%s", pica_opcode_info[opcode].name,
 		getStrOpdesc(opdescData, OPDESC_NEG_SRC1).str, getStrSrc(src1).str, getStrOpdesc(opdescData, OPDESC_SWI_SRC1).str,
 		getStrCmpOp(cmpop_x),
 		getStrCmpOp(cmpop_y),
@@ -416,7 +416,7 @@ DECL_FORMAT(format2) {
 	switch (opcode) {
 		case 0x2C: /*JMPC*/ {
 			printCondOP(condop, refx, refy);
-			putchar(' ');
+			printf(", ");
 
 			const char *label = getLabel(exe, dst);
 			if (label)
@@ -428,13 +428,13 @@ DECL_FORMAT(format2) {
 		case 0x28: /*IFC*/
 		case 0x25: /*CALLC*/
 			printCondOP(condop, refx, refy);
-			putchar(' ');
+			printf(", ");
 		case 0x24: /*CALL*/ {
 			const char *label = getLabel(exe, dst);
 			if (label)
-				printf("<%s> %d", label, instrnum);
+				printf("<%s>, %d", label, instrnum);
 			else
-				printf("0x%04x %d", dst, instrnum);
+				printf("0x%04x, %d", dst, instrnum);
 			break;
 		}
 	}
@@ -459,16 +459,16 @@ DECL_FORMAT(format3) {
 			if (label)
 				printf("i%d, <%s>", uniformid, label);
 			else
-				printf("i%d 0x%04x", uniformid, dst);
+				printf("i%d, 0x%04x", uniformid, dst);
 			break;
 		}
 		case 0x27: /*IFU*/
 		case 0x26: /*CALLU*/ {
 			const char *label = getLabel(exe, dst);
 			if (label)
-				printf("b%d, <%s> %d", uniformid, label, instrnum);
+				printf("b%d, <%s>, %d", uniformid, label, instrnum);
 			else
-				printf("b%d 0x%04x %d", uniformid, dst, instrnum);
+				printf("b%d, 0x%04x, %d", uniformid, dst, instrnum);
 			break;
 		}
 		case 0x2D: /*JMPU*/ {
@@ -476,7 +476,7 @@ DECL_FORMAT(format3) {
 			if (label)
 				printf("%sb%d, <%s>", instrnum?"":"!", uniformid, label);
 			else
-				printf("%sb%d 0x%04x", instrnum?"":"!", uniformid, dst);
+				printf("%sb%d, 0x%04x", instrnum?"":"!", uniformid, dst);
 			break;
 		}
 	}
@@ -522,7 +522,7 @@ DECL_FORMAT(format5) {
 		src3,
 		opdesc);
 
-	printf("%-7s %s.%s %s%s.%s %s%s.%s %s%s.%s", pica_opcode_info[opcode].name,
+	printf("%-7s %s.%s, %s%s.%s, %s%s.%s, %s%s.%s", pica_opcode_info[opcode].name,
 		getStrDst(dst).str, getStrOpdesc(opdescData, OPDESC_SWI_DST).str,
 		getStrOpdesc(opdescData, OPDESC_NEG_SRC1).str, getStrSrc(src1).str, getStrOpdesc(opdescData, OPDESC_SWI_SRC1).str,
 		getStrOpdesc(opdescData, OPDESC_NEG_SRC2).str, getStrSrc(src2).str, getStrOpdesc(opdescData, OPDESC_SWI_SRC2).str,
@@ -549,7 +549,7 @@ DECL_FORMAT(format5i) {
 		src3,
 		opdesc);
 
-	printf("%-7s %s.%s %s%s.%s %s%s.%s %s%s.%s", pica_opcode_info[opcode].name,
+	printf("%-7s %s.%s, %s%s.%s, %s%s.%s, %s%s.%s", pica_opcode_info[opcode].name,
 		getStrDst(dst).str, getStrOpdesc(opdescData, OPDESC_SWI_DST).str,
 		getStrOpdesc(opdescData, OPDESC_NEG_SRC1).str, getStrSrc(src1).str, getStrOpdesc(opdescData, OPDESC_SWI_SRC1).str,
 		getStrOpdesc(opdescData, OPDESC_NEG_SRC2).str, getStrSrc(src2).str, getStrOpdesc(opdescData, OPDESC_SWI_SRC2).str,
