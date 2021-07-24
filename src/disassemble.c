@@ -261,10 +261,24 @@ const char *cmpOpStr[] = {
 };
 
 static const char *getStrCmpOp(unsigned op) {
-	if (op < ARRAY_SIZE(outTypeName))
+	if (op < ARRAY_SIZE(cmpOpStr))
 		return cmpOpStr[op];
 
 	return NULL;
+}
+
+const char *addrIdxStr[] = {
+	"",
+	"[a0.x]",
+	"[a0.y]",
+	"[aL]",
+};
+
+static const char *getStrAddrIdx(unsigned idx) {
+	if (idx < ARRAY_SIZE(addrIdxStr))
+		return addrIdxStr[idx];
+
+	return "[err]";
 }
 
 static float f24tof32(uint32_t f24) {
@@ -298,9 +312,9 @@ DECL_FORMAT(format1) {
 		src2,
 		opdesc);
 
-	printf("%-7s %s.%s, %s%s.%s, %s%s.%s", pica_opcode_info[opcode].name,
+	printf("%-7s %s.%s, %s%s%s.%s, %s%s.%s", pica_opcode_info[opcode].name,
 		getStrDst(dst).str, getStrOpdesc(opdescData, OPDESC_SWI_DST).str,
-		getStrOpdesc(opdescData, OPDESC_NEG_SRC1).str, getStrSrc(src1).str, getStrOpdesc(opdescData, OPDESC_SWI_SRC1).str,
+		getStrOpdesc(opdescData, OPDESC_NEG_SRC1).str, getStrSrc(src1).str, getStrAddrIdx(idx_src1), getStrOpdesc(opdescData, OPDESC_SWI_SRC1).str,
 		getStrOpdesc(opdescData, OPDESC_NEG_SRC2).str, getStrSrc(src2).str, getStrOpdesc(opdescData, OPDESC_SWI_SRC2).str);
 
 	return 0;
@@ -322,10 +336,10 @@ DECL_FORMAT(format1i) {
 		src2,
 		opdesc);
 
-	printf("%-7s %s.%s, %s%s.%s, %s%s.%s", pica_opcode_info[opcode].name,
+	printf("%-7s %s.%s, %s%s.%s, %s%s%s.%s", pica_opcode_info[opcode].name,
 		getStrDst(dst).str, getStrOpdesc(opdescData, OPDESC_SWI_DST).str,
 		getStrOpdesc(opdescData, OPDESC_NEG_SRC1).str, getStrSrc(src1).str, getStrOpdesc(opdescData, OPDESC_SWI_SRC1).str,
-		getStrOpdesc(opdescData, OPDESC_NEG_SRC2).str, getStrSrc(src2).str, getStrOpdesc(opdescData, OPDESC_SWI_SRC2).str);
+		getStrOpdesc(opdescData, OPDESC_NEG_SRC2).str, getStrSrc(src2).str, getStrAddrIdx(idx_src2), getStrOpdesc(opdescData, OPDESC_SWI_SRC2).str);
 
 	return 0;
 }
@@ -347,7 +361,11 @@ DECL_FORMAT(format1u) {
 	printf("%-7s ", pica_opcode_info[opcode].name);
 	if (opcode != 0x12/*MOVA*/)
 		printf("%s.%s, ", getStrDst(dst).str, getStrOpdesc(opdescData, OPDESC_SWI_DST).str);
-	printf("%s%s.%s", getStrOpdesc(opdescData, OPDESC_NEG_SRC1).str, getStrSrc(src1).str, getStrOpdesc(opdescData, OPDESC_SWI_SRC1).str);
+	else
+		printf("a0.%s, ", getStrOpdesc(opdescData, OPDESC_SWI_DST).str);
+
+	printf("%s%s%s.%s",
+		getStrOpdesc(opdescData, OPDESC_NEG_SRC1).str, getStrSrc(src1).str, getStrAddrIdx(idx_src1), getStrOpdesc(opdescData, OPDESC_SWI_SRC1).str);
 
 	return 0;
 }
@@ -370,8 +388,8 @@ DECL_FORMAT(format1c) {
 		src2,
 		opdesc);
 
-	printf("%-7s %s%s.%s, %s, %s, %s%s.%s", pica_opcode_info[opcode].name,
-		getStrOpdesc(opdescData, OPDESC_NEG_SRC1).str, getStrSrc(src1).str, getStrOpdesc(opdescData, OPDESC_SWI_SRC1).str,
+	printf("%-7s %s%s%s.%s, %s, %s, %s%s.%s", pica_opcode_info[opcode].name,
+		getStrOpdesc(opdescData, OPDESC_NEG_SRC1).str, getStrSrc(src1).str, getStrAddrIdx(idx_src1), getStrOpdesc(opdescData, OPDESC_SWI_SRC1).str,
 		getStrCmpOp(cmpop_x),
 		getStrCmpOp(cmpop_y),
 		getStrOpdesc(opdescData, OPDESC_NEG_SRC2).str, getStrSrc(src2).str, getStrOpdesc(opdescData, OPDESC_SWI_SRC2).str);
@@ -522,10 +540,10 @@ DECL_FORMAT(format5) {
 		src3,
 		opdesc);
 
-	printf("%-7s %s.%s, %s%s.%s, %s%s.%s, %s%s.%s", pica_opcode_info[opcode].name,
+	printf("%-7s %s.%s, %s%s.%s, %s%s%s.%s, %s%s.%s", pica_opcode_info[opcode].name,
 		getStrDst(dst).str, getStrOpdesc(opdescData, OPDESC_SWI_DST).str,
 		getStrOpdesc(opdescData, OPDESC_NEG_SRC1).str, getStrSrc(src1).str, getStrOpdesc(opdescData, OPDESC_SWI_SRC1).str,
-		getStrOpdesc(opdescData, OPDESC_NEG_SRC2).str, getStrSrc(src2).str, getStrOpdesc(opdescData, OPDESC_SWI_SRC2).str,
+		getStrOpdesc(opdescData, OPDESC_NEG_SRC2).str, getStrSrc(src2).str, getStrAddrIdx(idx_src2), getStrOpdesc(opdescData, OPDESC_SWI_SRC2).str,
 		getStrOpdesc(opdescData, OPDESC_NEG_SRC3).str, getStrSrc(src3).str, getStrOpdesc(opdescData, OPDESC_SWI_SRC3).str);
 
 	return 0;
@@ -534,7 +552,7 @@ DECL_FORMAT(format5) {
 DECL_FORMAT(format5i) {
 	uint8_t opcode = instr>>26;
 	uint8_t dst = (instr>>24)&0x1F;
-	uint8_t idx_src2 = (instr>>22)&0x3;
+	uint8_t idx_src3 = (instr>>22)&0x3;
 	uint8_t src1 = (instr>>11)&0x1F;
 	uint8_t src2 = (instr>>12)&0x1F;
 	uint8_t src3 = (instr>>5)&0x7F;
@@ -543,17 +561,17 @@ DECL_FORMAT(format5i) {
 	printf("%02x %02x %02x %02x %02x %02x %02x  ",
 		opcode,
 		dst,
-		idx_src2,
+		idx_src3,
 		src1,
 		src2,
 		src3,
 		opdesc);
 
-	printf("%-7s %s.%s, %s%s.%s, %s%s.%s, %s%s.%s", pica_opcode_info[opcode].name,
+	printf("%-7s %s.%s, %s%s.%s, %s%s.%s, %s%s%s.%s", pica_opcode_info[opcode].name,
 		getStrDst(dst).str, getStrOpdesc(opdescData, OPDESC_SWI_DST).str,
 		getStrOpdesc(opdescData, OPDESC_NEG_SRC1).str, getStrSrc(src1).str, getStrOpdesc(opdescData, OPDESC_SWI_SRC1).str,
 		getStrOpdesc(opdescData, OPDESC_NEG_SRC2).str, getStrSrc(src2).str, getStrOpdesc(opdescData, OPDESC_SWI_SRC2).str,
-		getStrOpdesc(opdescData, OPDESC_NEG_SRC3).str, getStrSrc(src3).str, getStrOpdesc(opdescData, OPDESC_SWI_SRC3).str);
+		getStrOpdesc(opdescData, OPDESC_NEG_SRC3).str, getStrSrc(src3).str, getStrAddrIdx(idx_src3), getStrOpdesc(opdescData, OPDESC_SWI_SRC3).str);
 
 	return 0;
 }
@@ -663,6 +681,8 @@ int picaDisass(dmp_pica_info *pinfo, int dvleIndex) {
 			//const char *str = &dvleData[/4];
 			verbose("; Label <%s> at offset 0x%x with id %d and unk 0x%x %d\n", &exe->symbTableData[exe->labelTableData[j].symbolOffset], exe->labelTableData[j].progOffset*4, exe->labelTableData[j].id, exe->labelTableData[j].unk, exe->labelTableData[j].pad);
 		}
+
+		verbose("; mergeOutmaps = %s\n", exe->mergeOutmaps?"true":"false");
 
 		if(exe->type==DMP_SHADER_GEOMETRY) {
 			switch (exe->gshMode) {
