@@ -6,6 +6,7 @@
 
 #include "main.h"
 #include "disassemble.h"
+#include "types.h"
 
 #define DECL_INSTR(name, fun) \
 	{#name, fun}
@@ -177,7 +178,7 @@ static union strreg getStrDst(unsigned dst) {
 	else if (dst >= 0x10 && dst <= 0x1F)
 		snprintf(out.str, sizeof(out.str), "r%d", dst-0x10);
 	else
-		snprintf(out.str, sizeof(out.str), "err");
+		snprintf(out.str, sizeof(out.str), "err%d", dst);
 	return out;
 }
 
@@ -576,6 +577,10 @@ DECL_FORMAT(format5i) {
 	return 0;
 }
 
+static inline uint32_t getUint32(const uint32_t *data, int offset) {
+	return le_u32(data[offset]);
+}
+
 dmp_pica_info picaParseHeader(const char *bin) {
 	dmp_pica_info pinfo = {0};
 
@@ -587,65 +592,65 @@ dmp_pica_info picaParseHeader(const char *bin) {
 	}
 
 	const uint32_t *shbinData = (uint32_t*)bin;
-	pinfo.numDVLE = shbinData[1];
+	pinfo.numDVLE = getUint32(shbinData, 1);
+	pinfo.exe     = malloc(sizeof(struct dmp_pica_exe)*pinfo.numDVLE);
 	printf("DVLEs found: %d\n", pinfo.numDVLE);
-	pinfo.exe=malloc(sizeof(struct dmp_pica_exe)*pinfo.numDVLE);
 
 	const uint32_t *dvlpData=&shbinData[2+pinfo.numDVLE];
-	pinfo.prog.version=dvlpData[1];
-	pinfo.prog.codeSize=dvlpData[3];
-	pinfo.prog.codeData=&dvlpData[dvlpData[2]/4];
+	pinfo.prog.version  = getUint32(dvlpData, 1);
+	pinfo.prog.codeSize = getUint32(dvlpData, 3);
+	pinfo.prog.codeData = &dvlpData[getUint32(dvlpData, 2)/4];
 	// Swizzle table
-	pinfo.prog.opdescSize=dvlpData[5];
-	pinfo.prog.opdescData=(uint32_t*)malloc(sizeof(uint32_t)*pinfo.prog.opdescSize);
+	pinfo.prog.opdescSize = getUint32(dvlpData, 5);
+	pinfo.prog.opdescData = (uint32_t*)malloc(sizeof(uint32_t)*pinfo.prog.opdescSize);
 	for(size_t i = 0; i < pinfo.prog.opdescSize; i++)
-		pinfo.prog.opdescData[i]=dvlpData[dvlpData[4]/4+i*2];
+		pinfo.prog.opdescData[i] = getUint32(dvlpData, getUint32(dvlpData, 4)/4+i*2);
 
-	pinfo.prog.unkSize=dvlpData[7];
-	pinfo.prog.unkData=&dvlpData[dvlpData[6]/4];
+	pinfo.prog.unkSize = getUint32(dvlpData, 7);
+	pinfo.prog.unkData = &dvlpData[getUint32(dvlpData, 6)/4];
 
-	pinfo.prog.fnsymbSize=dvlpData[9];
-	pinfo.prog.fnsymbData=(const char*)&dvlpData[dvlpData[8]/4];
+	pinfo.prog.fnsymbSize = getUint32(dvlpData, 9);
+	pinfo.prog.fnsymbData = (const char*)&dvlpData[getUint32(dvlpData, 8)/4];
 
 	for (int i = 0; i < pinfo.numDVLE; i++) {
 		struct dmp_pica_exe *exe = &pinfo.exe[i];
-		const uint32_t* dvleData=&shbinData[shbinData[2+i]/4];
+		const uint32_t* dvleData=&shbinData[getUint32(shbinData, 2+i)/4];
 
 		if (memcmp("DVLE", dvleData, 4)!=0) {
 			error("Something went wrong when parsing dvle\n");
 			goto err0;
 		}
 
-		exe->version=dvleData[1]&0xFFFF;
-		exe->type=(dvleData[1]>>16)&0xFF;
-		exe->mergeOutmaps=(dvleData[1]>>24)&1;
-		exe->mainOffset=dvleData[2];
-		exe->endmainOffset=dvleData[3];
-		exe->inMap=dvleData[4]&0xFFFF;
-		exe->outMap=(dvleData[4]>>16)&0xFFFF;
+		exe->version       = getUint32(dvleData, 1)&0xFFFF;
+		exe->type          = (getUint32(dvleData, 1)>>16)&0xFF;
+		exe->mergeOutmaps  = (getUint32(dvleData, 1)>>24)&1;
+		exe->mainOffset    = getUint32(dvleData, 2);
+		exe->endmainOffset = getUint32(dvleData, 3);
+		exe->inMap         = getUint32(dvleData, 4)&0xFFFF;
+		exe->outMap        = (getUint32(dvleData, 4)>>16)&0xFFFF;
 
 		if(exe->type==DMP_SHADER_GEOMETRY)
 		{
-			exe->gshMode=dvleData[5]&0xFF;
-			exe->gshFixedVtxStart=(dvleData[5]>>8)&0xFF;
-			exe->gshVariableVtxNum=(dvleData[5]>>16)&0xFF;
-			exe->gshFixedVtxNum=(dvleData[5]>>24)&0xFF;
+			exe->gshMode           = getUint32(dvleData, 5)&0xFF;
+			exe->gshFixedVtxStart  = (getUint32(dvleData, 5)>>8)&0xFF;
+			exe->gshVariableVtxNum = (getUint32(dvleData, 5)>>16)&0xFF;
+			exe->gshFixedVtxNum    = (getUint32(dvleData, 5)>>24)&0xFF;
 		}
 
-		exe->constTableSize=dvleData[7];
-		exe->constTableData=(struct constant_table_ent*)&dvleData[dvleData[6]/4];
+		exe->constTableSize = getUint32(dvleData, 7);
+		exe->constTableData = (struct constant_table_ent*)&dvleData[getUint32(dvleData, 6)/4];
 
-		exe->labelTableSize=dvleData[9];
-		exe->labelTableData=(struct label_table_ent*)&dvleData[dvleData[8]/4];
+		exe->labelTableSize = getUint32(dvleData, 9);
+		exe->labelTableData = (struct label_table_ent*)&dvleData[getUint32(dvleData, 8)/4];
 
-		exe->outTableSize=dvleData[11];
-		exe->outTableData=(struct output_table_ent*)&dvleData[dvleData[10]/4];
+		exe->outTableSize = getUint32(dvleData, 11);
+		exe->outTableData = (struct output_table_ent*)&dvleData[getUint32(dvleData, 10)/4];
 
-		exe->uniformTableSize=dvleData[13];
-		exe->uniformTableData=(struct uniform_table_ent*)&dvleData[dvleData[12]/4];
+		exe->uniformTableSize = getUint32(dvleData, 13);
+		exe->uniformTableData = (struct uniform_table_ent*)&dvleData[getUint32(dvleData, 12)/4];
 
-		exe->symbTableSize=dvleData[15];
-		exe->symbTableData=(char*)&dvleData[dvleData[14]/4];
+		exe->symbTableSize = getUint32(dvleData, 15);
+		exe->symbTableData = (char*)&dvleData[getUint32(dvleData, 14)/4];
 	}
 
 	pinfo.sucess = true;
@@ -755,7 +760,7 @@ int picaDisass(dmp_pica_info *pinfo, int dvleIndex) {
 
 	printf("; %d program instructions in total\n", pinfo->prog.codeSize);
 	for (unsigned i = 0; i < pinfo->prog.codeSize; ++i) {
-		uint32_t instr = pinfo->prog.codeData[i];
+		uint32_t instr = getUint32(pinfo->prog.codeData, i);
 
 		for (size_t j = 0; exe && j < exe->labelTableSize; j++)
 			if (i==exe->labelTableData[j].progOffset)
