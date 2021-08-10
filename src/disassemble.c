@@ -673,6 +673,13 @@ int picaDisass(dmp_pica_info *pinfo, int dvleIndex) {
 		verbose("DVLE %d: %s\n", i, pinfo->exe[i].type == DMP_SHADER_VERTEX ? "vsh" : "gsh");
 	}
 
+	int fileNum = 0;
+	for (size_t i = 0; i < pinfo->prog.fnsymbSize; i++) {
+		if (i == 0 || pinfo->prog.fnsymbData[i-1] == '\0') {
+			verbose("File %d: %s\n", fileNum++, &pinfo->prog.fnsymbData[i]);
+		}
+	}
+
 	struct dmp_pica_exe *exe = NULL;
 	if (dvleIndex<0) {
 		printf("No dvle specified!\n");
