@@ -179,7 +179,7 @@ union strreg {char str[7];};
 
 static union strreg getStrDst(unsigned dst) {
 	union strreg out = {0};
-	if (dst <= 0x6)
+	if (dst <= 0xF)
 		snprintf(out.str, sizeof(out.str), "o%d", dst);
 	else if (dst >= 0x10 && dst <= 0x1F)
 		snprintf(out.str, sizeof(out.str), "r%d", dst-0x10);
