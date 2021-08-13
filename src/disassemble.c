@@ -8,6 +8,12 @@
 #include "disassemble.h"
 #include "types.h"
 
+#define PARSE_MAJOR(_x) \
+	((_x)&0xFF)
+
+#define PARSE_MINOR(_x) \
+	(((_x)>>8)&0xFF)
+
 #define DECL_INSTR(name, fun) \
 	{#name, fun}
 
@@ -669,6 +675,8 @@ int picaDisass(dmp_pica_info *pinfo, int dvleIndex) {
 	if (!pinfo->sucess)
 		return -1;
 
+	verbose("Linked against %d.%d\n", PARSE_MAJOR(pinfo->prog.version), PARSE_MINOR(pinfo->prog.version));
+
 	for (int i = 0; i < pinfo->numDVLE; i++) {
 		verbose("DVLE %d: %s\n", i, pinfo->exe[i].type == DMP_SHADER_VERTEX ? "vsh" : "gsh");
 	}
@@ -681,7 +689,7 @@ int picaDisass(dmp_pica_info *pinfo, int dvleIndex) {
 	}
 
 	struct dmp_pica_exe *exe = NULL;
-	if (dvleIndex<0) {
+	if (dvleIndex < 0) {
 		printf("No dvle specified!\n");
 	} else if (dvleIndex >= pinfo->numDVLE) {
 		printf("Invalid dvle index specified\n");
@@ -689,9 +697,14 @@ int picaDisass(dmp_pica_info *pinfo, int dvleIndex) {
 	} else {
 		exe = &pinfo->exe[dvleIndex];
 
+		verbose("; DVLE version %d.%d\n", PARSE_MAJOR(exe->version), PARSE_MINOR(exe->version));
 		for (size_t j = 0; j < exe->labelTableSize; j++) {
-			//const char *str = &dvleData[/4];
-			verbose("; Label <%s> at offset 0x%x with id %d and unk 0x%x %d\n", &exe->symbTableData[exe->labelTableData[j].symbolOffset], exe->labelTableData[j].progOffset*4, exe->labelTableData[j].id, exe->labelTableData[j].unk, exe->labelTableData[j].pad);
+			uint32_t progSize = exe->labelTableData[j].progSize == (uint32_t)-1 ?
+				exe->labelTableData[j].progSize : exe->labelTableData[j].progSize*4;
+
+			verbose("; Label <%s>, offset: 0x%x, size: 0x%x, id %d (unk %d)\n",
+				&exe->symbTableData[exe->labelTableData[j].symbolOffset], exe->labelTableData[j].progOffset*4,
+				progSize, exe->labelTableData[j].id, exe->labelTableData[j].pad);
 		}
 
 		verbose("; mergeOutmaps = %s\n", exe->mergeOutmaps?"true":"false");
@@ -714,7 +727,11 @@ int picaDisass(dmp_pica_info *pinfo, int dvleIndex) {
 		for (size_t j = 0; j < exe->outTableSize; j++) {
 			const char *typename = getStrOutType(exe->outTableData[j].type);
 			if (typename) {
-				printf(".out %-10s o%d.%s\n", typename, exe->outTableData[j].oid, getStrOutComp(exe->outTableData[j].mask).str);
+				printf(".out %-10s o%d.%s", typename, exe->outTableData[j].oid, getStrOutComp(exe->outTableData[j].mask).str);
+				if (exe->outTableData[j].unk) {
+					verbose(" (unk: 0x%x)", exe->outTableData[j].unk);
+				}
+				printf("\n");
 			} else {
 				error(".out err%d o%d.%s\n", exe->outTableData[j].type, exe->outTableData[j].oid, getStrOutComp(exe->outTableData[j].mask).str);
 				err++;

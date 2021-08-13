@@ -5,3 +5,4 @@ build/
 *.bin
 *.bsm
 *.bch
+tmp.txt

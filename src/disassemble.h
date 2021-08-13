@@ -28,7 +28,7 @@ struct label_table_ent {
 	uint16_t id;
 	uint16_t pad;
 	uint32_t progOffset;
-	uint32_t unk;
+	uint32_t progSize;
 	uint32_t symbolOffset;
 };
 
@@ -37,8 +37,8 @@ static_assert(sizeof(struct label_table_ent)==0x10, "Invalid label table entry s
 struct output_table_ent {
 	uint16_t type;
 	uint16_t oid;
-	uint8_t mask;
-	uint8_t unk[3];
+	uint16_t mask;
+	uint16_t unk; // Always set on 2.3 shaders, never set on newer shaders? (I have only seen values 0x48 and 0x38 so far)
 };
 
 static_assert(sizeof(struct output_table_ent)==0x8, "Invalid output table entry size.");
