@@ -707,6 +707,7 @@ int picaDisass(dmp_pica_info *pinfo, int dvleIndex) {
 				progSize, exe->labelTableData[j].id, exe->labelTableData[j].pad);
 		}
 
+		verbose("; inMap: 0x%x, outMap: 0x%x\n", exe->inMap, exe->outMap);
 		verbose("; mergeOutmaps = %s\n", exe->mergeOutmaps?"true":"false");
 
 		if(exe->type==DMP_SHADER_GEOMETRY) {

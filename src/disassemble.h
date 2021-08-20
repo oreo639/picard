@@ -38,7 +38,7 @@ struct output_table_ent {
 	uint16_t type;
 	uint16_t oid;
 	uint16_t mask;
-	uint16_t unk; // Always set on 2.3 shaders, never set on newer shaders? (I have only seen values 0x48 and 0x38 so far)
+	uint16_t unk; // Always set on 2.3 shaders, never set on newer or older shaders? (Usually 0x48 or 0x38 although 0x45 has also been seen)
 };
 
 static_assert(sizeof(struct output_table_ent)==0x8, "Invalid output table entry size.");
