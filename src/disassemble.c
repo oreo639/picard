@@ -533,7 +533,7 @@ DECL_FORMAT(format5) {
 	uint8_t opcode = instr>>26;
 	uint8_t dst = (instr>>24)&0x1F;
 	uint8_t idx_src2 = (instr>>22)&0x3;
-	uint8_t src1 = (instr>>11)&0x1F;
+	uint8_t src1 = (instr>>17)&0x1F;
 	uint8_t src2 = (instr>>10)&0x7F;
 	uint8_t src3 = (instr>>5)&0x1F;
 	uint8_t opdesc = (instr)&0x1F;
@@ -560,7 +560,7 @@ DECL_FORMAT(format5i) {
 	uint8_t opcode = instr>>26;
 	uint8_t dst = (instr>>24)&0x1F;
 	uint8_t idx_src3 = (instr>>22)&0x3;
-	uint8_t src1 = (instr>>11)&0x1F;
+	uint8_t src1 = (instr>>17)&0x1F;
 	uint8_t src2 = (instr>>12)&0x1F;
 	uint8_t src3 = (instr>>5)&0x7F;
 	uint8_t opdesc = (instr)&0x1F;
